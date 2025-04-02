@@ -1,6 +1,7 @@
 
-import React from 'react';
-import { X } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, DollarSign } from 'lucide-react';
+import { Input } from './ui/input';
 
 interface BetPanelProps {
   betAmount: string;
@@ -24,12 +25,26 @@ const BetPanel: React.FC<BetPanelProps> = ({
   currentMultiplier
 }) => {
   const presetAmounts = [20, 100, 200, 700, 2000, 10000];
+  const [customAmount, setCustomAmount] = useState('');
   
   const handleBetSubmit = () => {
     const amount = parseFloat(betAmount);
     if (!isNaN(amount) && amount > 0) {
       placeBet(amount);
     }
+  };
+  
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers and decimals
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    setCustomAmount(value);
+  };
+  
+  const applyCustomAmount = () => {
+    if (customAmount && !isNaN(parseFloat(customAmount))) {
+      setBetAmount(customAmount);
+    }
+    setCustomAmount('');
   };
   
   const handleClearBet = () => {
@@ -57,6 +72,14 @@ const BetPanel: React.FC<BetPanelProps> = ({
             className="w-full bg-white rounded-lg p-3 text-black text-lg"
             placeholder="Enter amount"
           />
+          {betAmount && (
+            <button
+              onClick={handleClearBet}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
       </div>
       
@@ -71,6 +94,32 @@ const BetPanel: React.FC<BetPanelProps> = ({
             {amount}
           </button>
         ))}
+      </div>
+      
+      {/* Manual bet input section */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Input
+              type="text"
+              value={customAmount}
+              onChange={handleCustomAmountChange}
+              disabled={!canPlaceBet}
+              className="bg-game-panel text-white pl-9 py-2"
+              placeholder="Custom amount"
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-game-orange">
+              <DollarSign size={16} />
+            </div>
+          </div>
+          <button
+            onClick={applyCustomAmount}
+            disabled={!canPlaceBet || !customAmount}
+            className="bg-game-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          >
+            Apply
+          </button>
+        </div>
       </div>
       
       <div className="grid grid-cols-2 gap-4">
