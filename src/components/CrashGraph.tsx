@@ -1,4 +1,6 @@
+
 import React, { useRef, useEffect } from 'react';
+import { Plane } from 'lucide-react';
 
 interface CrashGraphProps {
   gameState: 'waiting' | 'running' | 'crashed';
@@ -9,6 +11,7 @@ const CrashGraph: React.FC<CrashGraphProps> = ({ gameState, multiplier }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const pointsRef = useRef<{ x: number; y: number }[]>([]);
+  const planeRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -104,21 +107,31 @@ const CrashGraph: React.FC<CrashGraphProps> = ({ gameState, multiplier }) => {
       context.lineWidth = 3;
       context.stroke();
       
-      // Draw rocket at the end of the line
-      if (pointsRef.current.length > 0) {
+      // Position the plane icon at the end of the line
+      if (pointsRef.current.length > 0 && planeRef.current) {
         const lastPoint = pointsRef.current[pointsRef.current.length - 1];
         
-        // Draw circle at the end
-        context.beginPath();
-        context.arc(lastPoint.x, lastPoint.y, 6, 0, Math.PI * 2);
-        context.fillStyle = '#ffc145';
-        context.fill();
+        // Update plane position
+        planeRef.current.style.left = `${lastPoint.x}px`;
+        planeRef.current.style.top = `${lastPoint.y}px`;
+        
+        // Calculate rotation angle based on line direction
+        if (pointsRef.current.length > 1) {
+          const prevPoint = pointsRef.current[pointsRef.current.length - 2];
+          const angle = Math.atan2(lastPoint.y - prevPoint.y, lastPoint.x - prevPoint.x);
+          planeRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+        }
       }
     }
     
     // Reset points when waiting for new game
     if (gameState === 'waiting') {
       pointsRef.current = [];
+      if (planeRef.current) {
+        planeRef.current.style.display = 'none';
+      }
+    } else if (planeRef.current) {
+      planeRef.current.style.display = 'block';
     }
     
     // If crashed, highlight in red
@@ -138,6 +151,21 @@ const CrashGraph: React.FC<CrashGraphProps> = ({ gameState, multiplier }) => {
   return (
     <div className="crash-graph-container mb-4 border border-game-accent rounded-lg" ref={containerRef}>
       <canvas ref={canvasRef} className="crash-graph" />
+      <div 
+        ref={planeRef} 
+        className="absolute" 
+        style={{ 
+          display: gameState === 'waiting' ? 'none' : 'block',
+          pointerEvents: 'none',
+          transform: 'translate(-50%, -50%)'
+        }}
+      >
+        <Plane 
+          size={24} 
+          color="#ffc145"
+          className="drop-shadow-glow"
+        />
+      </div>
       <div className="multiplier-text">
         {gameState === 'waiting' ? (
           <span>STARTING...</span>

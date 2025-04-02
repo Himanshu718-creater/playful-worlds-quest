@@ -90,3 +90,7 @@
   transform: translate(-50%, -50%) rotate(45deg);
   z-index: 10;
 }
+
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 193, 69, 0.8));
+}
